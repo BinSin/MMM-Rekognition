@@ -4,13 +4,16 @@
 'use strict';
 
 var NodeHelper = require("node_helper");
-var NodeWebcam = require("node-webcam");
-var opts = {};
-var Webcam = null;
 
-var Rekognition = require('node-rekognition');
-var rekognition = null;
-var s3_folder = null; 
+var path = require("path");
+
+var AWS = require('aws-sdk');
+var fs = require('fs');
+
+AWS.config.region = 'ap-northeast-1';
+var s3 = new AWS.S3();
+
+var rekognition = new AWS.Rekognition({apiVersion: '2016-06-27'});
 
 module.exports = NodeHelper.create({
 
@@ -18,42 +21,60 @@ module.exports = NodeHelper.create({
     console.log("Starting node helper for: " + this.name);
   },
 
-  initCamera: function(payload) {
+  loadAWS: function(payload) {
     var self = this;
-    self.Webcam = NodeWebcam.create( {
-      width: payload.opts.width,
-      height: payload.opts.height,
-      quality: payload.opts.quality,
-      delay: payload.opts.delay,
-      saveShots: payload.opts.saveShots,
-      output: payload.opts.output,
-      device: payload.opts.device,
-      callbackReturn: payload.opts.callbackReturn,
-      verbose: payload.opts.verbose
-    } );
 
-    self.rekognition = new Rekognition( {
-	    accessKeyId: payload.aws.accessKeyId,
-	    secretAccessKey: payload.aws.secretAccessKey,
-	    region: payload.aws.region,
-	    bucket: payload.aws.bucket,
-    } );
-    self.s3_folder = payload.s3_folder;
+    var param = {
+	    Bucket: payload.Bucket,
+	    Key: "Pictures/recognition.jpg",
+	    ACL: payload.ACL,
+	    Body: fs.createReadStream(path.resolve("../Pictures/" + payload.filename))
+    };
+    s3.upload(param, function(err, data) {
+	if(err) {
+		self.sendSocketNotification("FAIL_LOAD_AWS", err);
+	}
+	else {
+    		self.sendSocketNotification("SUCCESS_LOAD_AWS", data);
+	}
+    });
+  },
 
+  rekognitionAWS: function(payload) {
+	  var self = this;
+
+	  var params = {
+		  Image: {
+			S3Object: {
+				Bucket: payload.Bucket,
+				Name: "Pictures/recognition.jpg"
+			}
+		  }
+	  };
+
+	  rekognition.detectFaces(params, function(err, data) {
+		  if(err) {
+			  self.sendSocketNotification("FAIL_REKOGNITION", err);
+		  }
+		  else {
+			  self.sendSocketNotification("SUCCESS_REKOGNITION", data);
+		  }
+	  });
   },
 
   socketNotificationReceived: function(notification, payload) {
-    if(notification == "INIT_CAMERA") {
-      this.initCamera(payload);
-    }
-    else if (notification == "TAKE_A_PICTURE") {
-      var self = this;
-      
-      var picture_path = "~/Pictures/%y%m%d_%H%M%S";
-      self.Webcam.capture( picture_path, function( err, data ) {} );
-      
-      var s3Images = rekognition.uploadToS3(picture_path, self.aws_folder);
-    }
+	var self = this;
+	
+	if (notification == "LOAD_AWS") {
+		setTimeout(function() {
+			self.loadAWS(payload);
+		}, 3000);
+	}
+	else if (notification == "RECOMMEND_MUSIC") {
+		setTimeout(function() {
+			self.rekognitionAWS(payload);	
+		}, 1000);
+	}
   },
 
 });

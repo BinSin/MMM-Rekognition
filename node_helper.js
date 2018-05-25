@@ -18,26 +18,44 @@ var rekognition = new AWS.Rekognition({apiVersion: '2016-06-27'});
 module.exports = NodeHelper.create({
 
   start: function() {
+    var self = this;
     console.log("Starting node helper for: " + this.name);
+  },
+
+  initAWS: function() {
+	  var self = this;
+	  setTimeout(function() {
+	 fs.readFile(path.resolve(global.root_path + "/imageLocation.js"), 'utf8', function(err, data) {
+		if(err) {
+			self.sendSocketNotification("FAIL_SEND_LOCATION", err);
+		}
+		else {
+			self.sendSocketNotification("SUCCESS_SEND_LOCATION", data);
+		}
+	 });
+	  }, 2000);
   },
 
   loadAWS: function(payload) {
     var self = this;
-
+    fs.readFile(path.resolve(global.root_path + "/imageLocation.js"), 'utf8', function(err, data) {
+	var image = data;
     var param = {
 	    Bucket: payload.Bucket,
-	    Key: "Pictures/recognition.jpg",
+	    Key: "Pictures/" + image,
 	    ACL: payload.ACL,
-	    Body: fs.createReadStream(path.resolve("../Pictures/" + payload.filename))
+	    Body: fs.createReadStream(path.resolve("../Pictures/" + image))
     };
     s3.upload(param, function(err, data) {
 	if(err) {
 		self.sendSocketNotification("FAIL_LOAD_AWS", err);
 	}
 	else {
-    		self.sendSocketNotification("SUCCESS_LOAD_AWS", data);
+    		self.sendSocketNotification("SUCCESS_LOAD_AWS", image);
 	}
     });
+    });
+
   },
 
   rekognitionAWS: function(payload) {
@@ -57,7 +75,7 @@ module.exports = NodeHelper.create({
 			  self.sendSocketNotification("FAIL_REKOGNITION", err);
 		  }
 		  else {
-			  self.sendSocketNotification("SUCCESS_REKOGNITION", data);
+			  self.sendSocketNotification("SUCCESS_REKOGNITION", data.FaceDetails[0].Emotions);
 		  }
 	  });
   },
@@ -66,14 +84,13 @@ module.exports = NodeHelper.create({
 	var self = this;
 	
 	if (notification == "LOAD_AWS") {
-		setTimeout(function() {
-			self.loadAWS(payload);
-		}, 3000);
+		self.loadAWS(payload);
+	}
+	else if (notification == "INIT_AWS") {
+		self.initAWS();
 	}
 	else if (notification == "RECOMMEND_MUSIC") {
-		setTimeout(function() {
-			self.rekognitionAWS(payload);	
-		}, 1000);
+		self.rekognitionAWS(payload);	
 	}
   },
 

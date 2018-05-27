@@ -1,6 +1,6 @@
 /*
  * Author : BinSin
- * https://github.com/BinSin/MMM-webCamera
+ * https://github.com/BinSin/MMM-Rekognition
  */
 
 Module.register("MMM-Rekognition", {
@@ -62,6 +62,7 @@ Module.register("MMM-Rekognition", {
 	}
 	else if(notification == "SUCCESS_REKOGNITION") {
 		console.log("success rekognition : " + payload);
+		self.sendNotification("PLAY_MUSIC_RECOGNITION", payload);
 	}
 	else if(notification == "FAIL_REKOGNITION") {
 		console.log("fail rekognition : " + payload);

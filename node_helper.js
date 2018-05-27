@@ -61,24 +61,28 @@ module.exports = NodeHelper.create({
   rekognitionAWS: function(payload) {
 	  var self = this;
 
+    fs.readFile(path.resolve(global.root_path + "/imageLocation.js"), 'utf8', function(err, data) {
+	var image = data;
 	  var params = {
 		  Image: {
 			S3Object: {
 				Bucket: payload.Bucket,
-				Name: "Pictures/recognition.jpg"
+				Name: "Pictures/" + image 
 			}
-		  }
+		  },
+		  Attributes: [ "DEFAULT", "ALL" ]
 	  };
-
 	  rekognition.detectFaces(params, function(err, data) {
 		  if(err) {
 			  self.sendSocketNotification("FAIL_REKOGNITION", err);
 		  }
 		  else {
-			  self.sendSocketNotification("SUCCESS_REKOGNITION", data.FaceDetails[0].Emotions);
+			  self.sendSocketNotification("SUCCESS_REKOGNITION", data.FaceDetails[0].Emotions[0].Type);
 		  }
 	  });
+    });
   },
+
 
   socketNotificationReceived: function(notification, payload) {
 	var self = this;

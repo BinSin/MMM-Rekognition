@@ -24,16 +24,7 @@ module.exports = NodeHelper.create({
 
   initAWS: function() {
 	  var self = this;
-	  setTimeout(function() {
-	 fs.readFile(path.resolve(global.root_path + "/imageLocation.js"), 'utf8', function(err, data) {
-		if(err) {
-			self.sendSocketNotification("FAIL_SEND_LOCATION", err);
-		}
-		else {
-			self.sendSocketNotification("SUCCESS_SEND_LOCATION", data);
-		}
-	 });
-	  }, 2000);
+	  self.sendSocketNotification("HIDE_PICTURE", "hide");
   },
 
   loadAWS: function(payload) {

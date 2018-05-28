@@ -44,18 +44,19 @@ Module.register("MMM-Rekognition", {
 
   socketNotificationReceived: function(notification, payload) {
 	var self = this;
-	if(notification == "SUCCESS_SEND_LOCATION") {
-		console.log("success send location : " +  payload);
-		this.image = payload;
-		this.updateDom(500);
-	}
-	else if(notification == "FAIL_SEND_LOCATION") {
-		console.log("fail send location : " + payload);
+	if(notification == "HIDE_PICTURE") {
+		console.log("hide picture");
+		self.hide();
 	}
 	else if(notification == "SUCCESS_LOAD_AWS") {
 		console.log("success aws load : " + payload);
 		this.image = payload;
+		this.emotion = payload;
+		self.show(1000);
 		self.updateDom(500);
+		setTimeout(function() {
+			self.hide(1000);
+		}, 5000);
 	}
 	else if(notification == "FAIL_LOAD_AWS") {
 		console.log("fail aws load");

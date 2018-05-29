@@ -15,11 +15,15 @@ Module.register("MMM-Rekognition", {
 	self.sendSocketNotification("INIT_AWS", self.config);
   },
 
-  getDom: function() {
-	Log.log('Change Image');
+  getScripts: function() {
+	return ["https://code.responsivevoice.org/responsivevoice.js"];
+  },
+
+   getDom: function() {
+	Log.log('Selfie image');
 	var wrapper = document.createElement("div");
 	var img = document.createElement("img");
-	img.width = '320';
+ 	img.width = '320';
 	img.height = '180';
 	img.src = 'https://s3-ap-northeast-1.amazonaws.com/hellomirror3/Pictures/' + this.image;
 	wrapper.appendChild(img);
@@ -63,10 +67,34 @@ Module.register("MMM-Rekognition", {
 	}
 	else if(notification == "SUCCESS_REKOGNITION") {
 		console.log("success rekognition : " + payload);
+		if(payload == "HAPPY") {
+			responsiveVoice.speak("You look happy");
+		}
+		else if(payload == "SAD") {
+			responsiveVoice.speak("You look sad");
+		}
+		else if(payload == "ANGRY") {
+			responsiveVoice.speak("You look angry");
+		}
+		else if(payload == "CONFUSED") {
+			responsiveVoice.speak("You look confused");
+		}
+		else if(payload == "DISGUSTED") {
+			responsiveVoice.speak("You look disgusted");
+		}
+		else if(payload == "SURPRISED") {
+			responsiveVoice.speak("You look surprised");
+		}
+		else {
+			responsiveVoice.speak("I don't know how you feel");
+		}
 		self.sendNotification("PLAY_MUSIC_RECOGNITION", payload);
 	}
 	else if(notification == "FAIL_REKOGNITION") {
 		console.log("fail rekognition : " + payload);
+	}
+	else if(notification == "asdf") {
+		console.log(payload);
 	}
   },
 

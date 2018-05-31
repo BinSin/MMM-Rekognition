@@ -25,7 +25,7 @@ Module.register("MMM-Rekognition", {
 	var img = document.createElement("img");
  	img.width = '320';
 	img.height = '180';
-	img.src = 'https://s3-ap-northeast-1.amazonaws.com/hellomirror3/Pictures/' + this.image;
+	img.src = 'https://s3-ap-northeast-1.amazonaws.com/hellomirror3/' + this.image;
 	wrapper.appendChild(img);
 	return wrapper;
   },
@@ -37,8 +37,12 @@ Module.register("MMM-Rekognition", {
 			console.log("send picture to AWS : " + payload);
 			self.sendSocketNotification("LOAD_AWS", self.config);
 		}
+		else if (notification == "SEND_AWS_MASTER") {
+			console.log("send picture to AWS MASTER : " + payload);
+			self.sendSocketNotification("LOAD_AWS_MASTER", self.config);
+		}
 		else if (notification == "COMMAND") {
-			if(payload == " recommend music") {
+			if(payload == " recommend music" || payload == " recommended music" || payload == " recommend the music") {
 				console.log("recommend music");
 				self.sendSocketNotification("RECOMMEND_MUSIC", self.config);
 			}
@@ -56,7 +60,7 @@ Module.register("MMM-Rekognition", {
 		console.log("success aws load : " + payload);
 		this.image = payload;
 		this.emotion = payload;
-		self.show(1000);
+		self.show(500);
 		self.updateDom(500);
 		setTimeout(function() {
 			self.hide(1000);
@@ -93,8 +97,14 @@ Module.register("MMM-Rekognition", {
 	else if(notification == "FAIL_REKOGNITION") {
 		console.log("fail rekognition : " + payload);
 	}
-	else if(notification == "asdf") {
-		console.log(payload);
+	else if(notification == "SUCCESS_LOAD_AWS_MASTER") {
+		console.log("success load aws master");
+		setTimeout(function() {
+			self.sendNotification("RECOGNITION_FACE", payload);
+		}, 3000);
+	}
+	else if(notification == "FAIL_LOAD_AWS_MASTER") {
+		console.log("fail load aws master");
 	}
   },
 

@@ -33,7 +33,7 @@ module.exports = NodeHelper.create({
 	var image = data;
  	var param = {
 		Bucket: payload.Bucket,
-		Key: "Pictures/" + image,
+		Key: image,
 		ACL: payload.ACL,
 		Body: fs.createReadStream(path.resolve("../Pictures/" + image))
     	};
@@ -59,7 +59,7 @@ module.exports = NodeHelper.create({
 			Image: {
 				S3Object: {
 					Bucket: payload.Bucket,
-					Name: "Pictures/" + image 
+					Name: image 
 				}
 			},
 			Attributes: [ "DEFAULT", "ALL" ]
@@ -77,6 +77,26 @@ module.exports = NodeHelper.create({
   },
 
 
+  loadAWSMaster: function(payload) {
+	var self = this;
+
+ 	var param = {
+		Bucket: "hellomirror4",
+		Key: "person.jpg",
+		ACL: payload.ACL,
+		Body: fs.createReadStream(path.resolve("../Pictures/Master/person.jpg"))
+    	};
+	
+	s3.upload(param, function(err, data) {
+		if(err) {
+			self.sendSocketNotification("FAIL_LOAD_AWS_MASTER", err);
+		}
+		else {
+    			self.sendSocketNotification("SUCCESS_LOAD_AWS_MASTER", data);
+		}
+   	});
+  },
+
   socketNotificationReceived: function(notification, payload) {
 	var self = this;
 	
@@ -88,6 +108,9 @@ module.exports = NodeHelper.create({
 	}
 	else if (notification == "RECOMMEND_MUSIC") {
 		self.rekognitionAWS(payload);	
+	}
+	else if (notification == "LOAD_AWS_MASTER") {
+		self.loadAWSMaster(payload);
 	}
   },
 
